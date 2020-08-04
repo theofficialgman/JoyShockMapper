@@ -279,9 +279,9 @@ private:
 		case VK_XBUTTON2:
 			return BTN_EXTRA;
 		case V_WHEEL_DOWN:
-			return static_cast<decltype(KEY_0)>(V_WHEEL_DOWN);
+			return V_WHEEL_DOWN;
 		case V_WHEEL_UP:
-			return static_cast<decltype(KEY_0)>(V_WHEEL_UP);
+			return V_WHEEL_UP;
 		case VK_BACK:
 			return KEY_BACK;
 			//		case NO_HOLD_MAPPED: return NO_HOLD_MAPPED;
@@ -441,23 +441,6 @@ public:
 		}
 	}
 
-	void mouse_scroll(std::int32_t amount) noexcept
-	{
-		auto error = libevdev_uinput_write_event(uinput_device_, EV_REL, REL_WHEEL, amount);
-		if (error != 0)
-		{
-			std::fprintf(stderr, "Failed to to simulate mouse scroll: %s\n", std::strerror(-error));
-			return;
-		}
-
-		error = libevdev_uinput_write_event(uinput_device_, EV_SYN, SYN_REPORT, 0);
-		if (error != 0)
-		{
-			std::fprintf(stderr, "Failed to to simulate mouse move: %s\n", std::strerror(-error));
-			return;
-		}
-	}
-
 private:
 	libevdev *device_;
 	libevdev_uinput *uinput_device_{ nullptr };
@@ -480,23 +463,9 @@ VirtualInputDevice keyboard{ VirtualInputDevice::Device::KEYBOARD };
 // send mouse button
 int pressMouse(WORD vkKey, bool isPressed)
 {
-	if (vkKey == V_WHEEL_UP)
+	// TODO: Handle wheel events
+	if (vkKey == V_WHEEL_UP || vkKey == V_WHEEL_DOWN)
 	{
-		if (isPressed)
-		{
-			mouse.mouse_scroll(1);
-		}
-
-		return 0;
-	}
-
-	if (vkKey == V_WHEEL_DOWN)
-	{
-		if (isPressed)
-		{
-			mouse.mouse_scroll(-1);
-		}
-
 		return 0;
 	}
 
@@ -513,23 +482,23 @@ int pressMouse(WORD vkKey, bool isPressed)
 }
 
 // send key press
-int pressKey(KeyCode vkKey, bool pressed)
+int pressKey(WORD vkKey, bool pressed)
 {
 	if (vkKey == 0)
 		return 0;
-	if (vkKey.code <= V_WHEEL_DOWN)
+	if (vkKey <= V_WHEEL_DOWN)
 	{
 		// Highest mouse ID
-		return pressMouse(vkKey.code, pressed);
+		return pressMouse(vkKey, pressed);
 	}
 
 	if (pressed)
 	{
-		keyboard.press_key(vkKey.code);
+		keyboard.press_key(vkKey);
 	}
 	else
 	{
-		keyboard.release_key(vkKey.code);
+		keyboard.release_key(vkKey);
 	}
 
 	return 0;
@@ -698,7 +667,6 @@ std::string GetCWD()
 
 DWORD ShowOnlineHelp()
 {
-	::system("xdg-open https://github.com/JibbSmart/JoyShockMapper/blob/master/README.md");
 	return 0;
 }
 

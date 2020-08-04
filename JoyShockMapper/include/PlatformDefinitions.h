@@ -17,8 +17,6 @@ extern const char *BASE_JSM_CONFIG_FOLDER;
 
 #elif defined (__linux__)
 
-#include <cassert>
-
 #define WINAPI
 #define VK_OEM_PLUS 0xBB
 #define VK_OEM_MINUS 0xBD
@@ -91,7 +89,6 @@ extern const char *BASE_JSM_CONFIG_FOLDER;
 #define VK_XBUTTON2 0x06
 
 #define U(string) string
-#define _ASSERT_EXPR(condition, message) assert(condition)
 
 using BOOL = bool;
 using WORD = unsigned short;
